@@ -1,0 +1,413 @@
+[
+  {
+    "id": "prime",
+    "name": "Prime",
+    "aliases": [
+      "Amazon",
+      "Amazon Prime Video",
+      "Prime Video",
+      "Amazon Prime Video with Ads"
+    ],
+    "src": "assets/logos/prime.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Amazon_Prime_logo_%282024%29.svg",
+    "page": "https://en.wikipedia.org/wiki/Amazon_Prime"
+  },
+  {
+    "id": "fx",
+    "name": "FX",
+    "aliases": [
+      "FX",
+      "FXX"
+    ],
+    "src": "assets/logos/fx.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/4/4d/FX_International_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/FX_(TV_channel)"
+  },
+  {
+    "id": "amc",
+    "name": "AMC",
+    "aliases": [
+      "AMC"
+    ],
+    "src": "assets/logos/amc.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/3/34/AMC_logo_2019.svg",
+    "page": "https://en.wikipedia.org/wiki/AMC_(TV_channel)"
+  },
+  {
+    "id": "fox",
+    "name": "FOX",
+    "aliases": [
+      "FOX",
+      "Fox Broadcasting Company"
+    ],
+    "src": "assets/logos/fox.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Fox_Broadcasting_Company_logo_%282019%29.svg",
+    "page": "https://en.wikipedia.org/wiki/Fox_Broadcasting_Company"
+  },
+  {
+    "id": "abc",
+    "name": "ABC",
+    "aliases": [
+      "ABC"
+    ],
+    "src": "assets/logos/abc.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/2/2f/ABC-2021-LOGO.svg",
+    "page": "https://en.wikipedia.org/wiki/American_Broadcasting_Company"
+  },
+  {
+    "id": "bbc",
+    "name": "BBC",
+    "aliases": [
+      "BBC",
+      "BBC One",
+      "BBC Two",
+      "BBC Three",
+      "BBC Four"
+    ],
+    "src": "assets/logos/bbc.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/4/41/BBC_Logo_2021.svg",
+    "page": "https://en.wikipedia.org/wiki/BBC"
+  },
+  {
+    "id": "channel4",
+    "name": "Channel 4",
+    "aliases": [
+      "Channel 4"
+    ],
+    "src": "assets/logos/channel4.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/en/9/9b/Channel_4_%28On_Demand%29_2023.svg",
+    "page": "https://en.wikipedia.org/wiki/Channel_4"
+  },
+  {
+    "id": "disneyplus",
+    "name": "Disney+",
+    "aliases": [
+      "Disney+"
+    ],
+    "src": "assets/logos/disneyplus.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/6/64/Disney%2B_2024.svg",
+    "page": "https://en.wikipedia.org/wiki/Disney%2B"
+  },
+  {
+    "id": "peacock",
+    "name": "Peacock",
+    "aliases": [
+      "Peacock",
+      "Peacock Premium"
+    ],
+    "src": "assets/logos/peacock.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/2/20/NBCUniversal_Peacock_Logo_%282026%29.svg",
+    "page": "https://en.wikipedia.org/wiki/Peacock_(streaming_service)"
+  },
+  {
+    "id": "hbomax",
+    "name": "HBO Max",
+    "aliases": [
+      "HBO Max",
+      "Max"
+    ],
+    "src": "assets/logos/hbomax.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/b/b3/HBO_Max_%282025%29.svg",
+    "page": "https://en.wikipedia.org/wiki/HBO_Max"
+  },
+  {
+    "id": "crave",
+    "name": "Crave",
+    "aliases": [
+      "Crave"
+    ],
+    "src": "assets/logos/crave.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/0/06/Crave_2018_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Crave_(streaming_service)"
+  },
+  {
+    "id": "illicoplus",
+    "name": "Illico+",
+    "aliases": [
+      "Illico+",
+      "Club illico"
+    ],
+    "src": "assets/logos/illicoplus.svg",
+    "source": "https://illicoplus.ca/_next/static/media/illicoplus-logo-white.1370004b.svg",
+    "page": "https://illicoplus.ca"
+  },
+  {
+    "id": "waltdisneypictures",
+    "name": "Walt Disney Pictures",
+    "aliases": [
+      "Walt Disney Pictures"
+    ],
+    "src": "assets/logos/waltdisneypictures.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/en/5/57/Walt_Disney_Pictures_2011_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Walt_Disney_Pictures"
+  },
+  {
+    "id": "pixar",
+    "name": "Pixar",
+    "aliases": [
+      "Pixar",
+      "Pixar Animation Studios"
+    ],
+    "src": "assets/logos/pixar.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/4/40/Pixar_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Pixar"
+  },
+  {
+    "id": "marvelstudios",
+    "name": "Marvel Studios",
+    "aliases": [
+      "Marvel Studios"
+    ],
+    "src": "assets/logos/marvelstudios.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Marvel_Studios"
+  },
+  {
+    "id": "lucasfilm",
+    "name": "Lucasfilm",
+    "aliases": [
+      "Lucasfilm",
+      "Lucasfilm Ltd."
+    ],
+    "src": "assets/logos/lucasfilm.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/8/88/Lucasfilm_2015.svg",
+    "page": "https://en.wikipedia.org/wiki/Lucasfilm"
+  },
+  {
+    "id": "20thcenturystudios",
+    "name": "20th Century Studios",
+    "aliases": [
+      "20th Century Studios",
+      "20th Century Fox"
+    ],
+    "src": "assets/logos/20thcenturystudios.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/2/22/20th_Century_Studios_%282020%29.svg",
+    "page": "https://en.wikipedia.org/wiki/20th_Century_Studios"
+  },
+  {
+    "id": "searchlight",
+    "name": "Searchlight Pictures",
+    "aliases": [
+      "Searchlight Pictures",
+      "Fox Searchlight Pictures"
+    ],
+    "src": "assets/logos/searchlight.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/8/82/Searchlight_Pictures_logo_wordmark_3.svg",
+    "page": "https://en.wikipedia.org/wiki/Searchlight_Pictures"
+  },
+  {
+    "id": "universal",
+    "name": "Universal Pictures",
+    "aliases": [
+      "Universal Pictures"
+    ],
+    "src": "assets/logos/universal.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Universal_Pictures_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Universal_Pictures"
+  },
+  {
+    "id": "focusfeatures",
+    "name": "Focus Features",
+    "aliases": [
+      "Focus Features"
+    ],
+    "src": "assets/logos/focusfeatures.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/3/39/Focus_Features.svg",
+    "page": "https://en.wikipedia.org/wiki/Focus_Features"
+  },
+  {
+    "id": "illumination",
+    "name": "Illumination",
+    "aliases": [
+      "Illumination",
+      "Illumination Entertainment"
+    ],
+    "src": "assets/logos/illumination.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Illumination_Entertainment_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Illumination_(company)"
+  },
+  {
+    "id": "dreamworks",
+    "name": "DreamWorks Animation",
+    "aliases": [
+      "DreamWorks Animation"
+    ],
+    "src": "assets/logos/dreamworks.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/en/f/ff/DreamWorks_Animation_SKG_logo_with_fishing_boy.svg",
+    "page": "https://en.wikipedia.org/wiki/DreamWorks_Animation"
+  },
+  {
+    "id": "warnerbros",
+    "name": "Warner Bros. Pictures",
+    "aliases": [
+      "Warner Bros. Pictures",
+      "Warner Bros."
+    ],
+    "src": "assets/logos/warnerbros.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Warner_Bros._Pictures_2023_%28Alt%29.svg",
+    "page": "https://en.wikipedia.org/wiki/Warner_Bros._Pictures"
+  },
+  {
+    "id": "newline",
+    "name": "New Line Cinema",
+    "aliases": [
+      "New Line Cinema"
+    ],
+    "src": "assets/logos/newline.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/0/0f/New_Line_Cinema_2024.svg",
+    "page": "https://en.wikipedia.org/wiki/New_Line_Cinema"
+  },
+  {
+    "id": "warneranimation",
+    "name": "Warner Bros. Pictures Animation",
+    "aliases": [
+      "Warner Bros. Pictures Animation",
+      "Warner Animation Group"
+    ],
+    "src": "assets/logos/warneranimation.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Warner_Bros._Pictures_Animation_2024.svg",
+    "page": "https://en.wikipedia.org/wiki/Warner_Bros._Pictures_Animation"
+  },
+  {
+    "id": "columbia",
+    "name": "Columbia Pictures",
+    "aliases": [
+      "Columbia Pictures"
+    ],
+    "src": "assets/logos/columbia.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Columbia_Pictures.svg",
+    "page": "https://en.wikipedia.org/wiki/Columbia_Pictures"
+  },
+  {
+    "id": "tristar",
+    "name": "TriStar Pictures",
+    "aliases": [
+      "TriStar Pictures"
+    ],
+    "src": "assets/logos/tristar.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/en/a/a9/TriStar_Pictures_present_day_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/TriStar_Pictures"
+  },
+  {
+    "id": "sonyclassics",
+    "name": "Sony Pictures Classics",
+    "aliases": [
+      "Sony Pictures Classics"
+    ],
+    "src": "assets/logos/sonyclassics.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sony_Pictures_Classics_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Sony_Pictures_Classics"
+  },
+  {
+    "id": "sonyanimation",
+    "name": "Sony Pictures Animation",
+    "aliases": [
+      "Sony Pictures Animation"
+    ],
+    "src": "assets/logos/sonyanimation.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/0/02/Sony_Pictures_Animation_2018_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Sony_Pictures_Animation"
+  },
+  {
+    "id": "paramountpictures",
+    "name": "Paramount Pictures",
+    "aliases": [
+      "Paramount Pictures"
+    ],
+    "src": "assets/logos/paramountpictures.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Paramount_Pictures_with_Skydance_byline.svg",
+    "page": "https://en.wikipedia.org/wiki/Paramount_Pictures"
+  },
+  {
+    "id": "republic",
+    "name": "Republic Pictures",
+    "aliases": [
+      "Republic Pictures"
+    ],
+    "src": "assets/logos/republic.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/en/a/a7/Republic-pictures.svg",
+    "page": "https://en.wikipedia.org/wiki/Republic_Pictures"
+  },
+  {
+    "id": "nickelodeonmovies",
+    "name": "Nickelodeon Movies",
+    "aliases": [
+      "Nickelodeon Movies"
+    ],
+    "src": "assets/logos/nickelodeonmovies.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Nickelodeon_Movies_2020.svg",
+    "page": "https://en.wikipedia.org/wiki/Nickelodeon_Movies"
+  },
+  {
+    "id": "miramax",
+    "name": "Miramax",
+    "aliases": [
+      "Miramax",
+      "Miramax Films"
+    ],
+    "src": "assets/logos/miramax.svg",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Miramax_logo.svg",
+    "page": "https://en.wikipedia.org/wiki/Miramax"
+  },
+  {
+    "id": "lionsgate",
+    "name": "Lionsgate",
+    "aliases": [
+      "Lionsgate",
+      "Lionsgate Films"
+    ],
+    "page": "https://en.wikipedia.org/wiki/Lionsgate_Films",
+    "source": "https://static.cdnlogo.com/logos/l/55/lionsgate.svg",
+    "src": "assets/logos/lionsgate.svg"
+  },
+  {
+    "id": "primevideo",
+    "name": "Prime Video",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/4/43/Amazon_Prime_Video_logo_%282022%29.svg",
+    "page": "https://commons.wikimedia.org/wiki/File:Amazon_Prime_Video_logo_(2022).svg"
+  },
+  {
+    "id": "adultswim",
+    "name": "Adult Swim",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Adult_Swim_2003_logo.svg",
+    "page": "https://commons.wikimedia.org/wiki/File:Adult_Swim_2003_logo.svg"
+  },
+  {
+    "id": "viceland",
+    "name": "Viceland",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/6/67/Viceland.svg",
+    "page": "https://commons.wikimedia.org/wiki/File:Viceland.svg"
+  },
+  {
+    "id": "paramountplus",
+    "name": "Paramount+",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Paramount%2B_logo.svg",
+    "page": "https://commons.wikimedia.org/wiki/File:Paramount+_logo.svg"
+  },
+  {
+    "id": "cbs",
+    "name": "CBS",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/e/ee/CBS_logo_%282020%29.svg",
+    "page": "https://commons.wikimedia.org/wiki/File:CBS_logo_(2020).svg"
+  },
+  {
+    "id": "disney",
+    "name": "Disney",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Disney_wordmark.svg",
+    "page": "https://commons.wikimedia.org/wiki/File:Disney_wordmark.svg"
+  },
+  {
+    "id": "disneypixar",
+    "name": "Disney \u00b7 Pixar",
+    "note": "Composed from the bundled Disney wordmark and Pixar vectors."
+  },
+  {
+    "id": "netflix",
+    "name": "Netflix Series",
+    "note": "Bundled Netflix N with SERIES lettering converted to vector outlines from Arial Bold."
+  },
+  {
+    "id": "marvelstudios-variant",
+    "note": "Bundled Marvel Studios vector adapted to white STUDIOS lettering and rules for dark poster backgrounds."
+  }
+]
