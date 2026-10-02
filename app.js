@@ -1,309 +1,133 @@
-const MAX_COLORS = 10;
-const MIN_COLORS = 2;
-const schemes = {
-  balanced: [0, 35, 155, 210, 265, 325],
-  monochromatic: [0, 0, 0, 0, 0, 0],
-  analogous: [-55, -32, -12, 12, 32, 55],
-  complementary: [0, 12, -12, 180, 192, 168],
-  triadic: [0, 12, 120, 132, 240, 252],
-  tetradic: [0, 60, 180, 240, 12, 192],
-  square: [0, 90, 180, 270, 12, 102]
+const $ = id => document.getElementById(id);
+const canvas = $('poster'), ctx = canvas.getContext('2d');
+const W=1000,H=1500;
+const readStore=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}};
+let credential=sessionStorage.getItem('frame-token')||localStorage.getItem('frame-token')||'';
+let region=localStorage.getItem('frame-region')||'CA';
+let mode='tv',selectedLayer='poster',assetTab='posters',media=null,images={posters:[],logos:[]},selectionVersion=0,searchVersion=0,searchTimer,titleLanguage="all";
+const layers={poster:{visible:true,img:null,src:''},gradient:{visible:true,color:'#000000',height:45,spread:65,opacity:90},title:{visible:true,img:null,src:'',x:50,y:83,width:78},service:{visible:true,img:null,x:9.4,y:5.1,width:8,color:'#ffffff',recolor:false,brandId:'',shadowEnabled:false,shadowColor:'#000000',shadowHeight:25,shadowSpread:100,shadowOpacity:85}};
+const builtins=[{"id": "netflix", "name": "Netflix", "aliases": ["Netflix"], "src": "assets/logos/netflix-series.svg", "note": "Bundled Netflix N with SERIES lettering converted to vector outlines from Arial Bold."}, {"id": "hulu", "name": "Hulu", "aliases": ["Hulu"], "src": "assets/logos/hulu.svg"}, {"id": "appletv", "name": "Apple TV+", "aliases": ["Apple TV+"], "src": "assets/logos/appletv.svg"}, {"id": "hbo", "name": "HBO", "aliases": ["HBO"], "src": "assets/logos/hbo.svg"}, {"id": "paramountplus", "name": "Paramount+", "aliases": ["Paramount+"], "src": "assets/logos/paramountwordmark.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Paramount%2B_logo.svg", "page": "https://commons.wikimedia.org/wiki/File:Paramount+_logo.svg"}, {"id": "nbc", "name": "NBC", "aliases": ["NBC"], "src": "assets/logos/nbc.svg"}, {"id": "cbs", "name": "CBS", "aliases": ["CBS"], "src": "assets/logos/cbswordmark.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/e/ee/CBS_logo_%282020%29.svg", "page": "https://commons.wikimedia.org/wiki/File:CBS_logo_(2020).svg"}, {"id": "cartoonnetwork", "name": "Cartoon Network", "aliases": ["Cartoon Network"], "src": "assets/logos/cartoonnetwork.svg"}, {"id": "dc", "name": "DC", "aliases": ["DC", "DC Entertainment", "DC Films"], "src": "assets/logos/dc.svg"}, {"id": "a24", "name": "A24", "aliases": ["A24"], "src": "assets/logos/a24.svg"}, {"id": "prime", "name": "Prime", "aliases": ["Amazon", "Amazon Prime Video", "Prime Video", "Amazon Prime Video with Ads"], "src": "assets/logos/prime.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/9/9e/Amazon_Prime_logo_%282024%29.svg", "page": "https://en.wikipedia.org/wiki/Amazon_Prime"}, {"id": "fx", "name": "FX", "aliases": ["FX", "FXX"], "src": "assets/logos/fx.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/4/4d/FX_International_logo.svg", "page": "https://en.wikipedia.org/wiki/FX_(TV_channel)"}, {"id": "amc", "name": "AMC", "aliases": ["AMC"], "src": "assets/logos/amc.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/3/34/AMC_logo_2019.svg", "page": "https://en.wikipedia.org/wiki/AMC_(TV_channel)"}, {"id": "fox", "name": "FOX", "aliases": ["FOX", "Fox Broadcasting Company"], "src": "assets/logos/fox.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Fox_Broadcasting_Company_logo_%282019%29.svg", "page": "https://en.wikipedia.org/wiki/Fox_Broadcasting_Company"}, {"id": "abc", "name": "ABC", "aliases": ["ABC"], "src": "assets/logos/abc.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/2/2f/ABC-2021-LOGO.svg", "page": "https://en.wikipedia.org/wiki/American_Broadcasting_Company"}, {"id": "bbc", "name": "BBC", "aliases": ["BBC", "BBC One", "BBC Two", "BBC Three", "BBC Four"], "src": "assets/logos/bbc.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/4/41/BBC_Logo_2021.svg", "page": "https://en.wikipedia.org/wiki/BBC"}, {"id": "channel4", "name": "Channel 4", "aliases": ["Channel 4"], "src": "assets/logos/channel4.svg", "source": "https://upload.wikimedia.org/wikipedia/en/9/9b/Channel_4_%28On_Demand%29_2023.svg", "page": "https://en.wikipedia.org/wiki/Channel_4"}, {"id": "disneyplus", "name": "Disney+", "aliases": ["Disney+"], "src": "assets/logos/disneyplus.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/6/64/Disney%2B_2024.svg", "page": "https://en.wikipedia.org/wiki/Disney%2B"}, {"id": "peacock", "name": "Peacock", "aliases": ["Peacock", "Peacock Premium"], "src": "assets/logos/peacock.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/2/20/NBCUniversal_Peacock_Logo_%282026%29.svg", "page": "https://en.wikipedia.org/wiki/Peacock_(streaming_service)"}, {"id": "hbomax", "name": "HBO Max", "aliases": ["HBO Max", "Max"], "src": "assets/logos/hbomax.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/b/b3/HBO_Max_%282025%29.svg", "page": "https://en.wikipedia.org/wiki/HBO_Max"}, {"id": "crave", "name": "Crave", "aliases": ["Crave"], "src": "assets/logos/crave.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/0/06/Crave_2018_logo.svg", "page": "https://en.wikipedia.org/wiki/Crave_(streaming_service)"}, {"id": "illicoplus", "name": "Illico+", "aliases": ["Illico+", "Club illico"], "src": "assets/logos/illicoplus.svg", "source": "https://illicoplus.ca/_next/static/media/illicoplus-logo-white.1370004b.svg", "page": "https://illicoplus.ca"}, {"id": "waltdisneypictures", "name": "Walt Disney Pictures", "aliases": ["Walt Disney Pictures"], "src": "assets/logos/waltdisneypictures.svg", "source": "https://upload.wikimedia.org/wikipedia/en/5/57/Walt_Disney_Pictures_2011_logo.svg", "page": "https://en.wikipedia.org/wiki/Walt_Disney_Pictures"}, {"id": "pixar", "name": "Pixar", "aliases": ["Pixar", "Pixar Animation Studios"], "src": "assets/logos/pixar.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/4/40/Pixar_logo.svg", "page": "https://en.wikipedia.org/wiki/Pixar"}, {"id": "marvelstudios", "name": "Marvel Studios", "aliases": ["Marvel Studios"], "src": "assets/logos/marvelstudios.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/1/10/Marvel_Studios_2016_logo.svg", "page": "https://en.wikipedia.org/wiki/Marvel_Studios"}, {"id": "lucasfilm", "name": "Lucasfilm", "aliases": ["Lucasfilm", "Lucasfilm Ltd."], "src": "assets/logos/lucasfilm.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/8/88/Lucasfilm_2015.svg", "page": "https://en.wikipedia.org/wiki/Lucasfilm"}, {"id": "20thcenturystudios", "name": "20th Century Studios", "aliases": ["20th Century Studios", "20th Century Fox"], "src": "assets/logos/20thcenturystudios.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/2/22/20th_Century_Studios_%282020%29.svg", "page": "https://en.wikipedia.org/wiki/20th_Century_Studios"}, {"id": "searchlight", "name": "Searchlight Pictures", "aliases": ["Searchlight Pictures", "Fox Searchlight Pictures"], "src": "assets/logos/searchlight.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/8/82/Searchlight_Pictures_logo_wordmark_3.svg", "page": "https://en.wikipedia.org/wiki/Searchlight_Pictures"}, {"id": "universal", "name": "Universal Pictures", "aliases": ["Universal Pictures"], "src": "assets/logos/universal.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Universal_Pictures_logo.svg", "page": "https://en.wikipedia.org/wiki/Universal_Pictures"}, {"id": "focusfeatures", "name": "Focus Features", "aliases": ["Focus Features"], "src": "assets/logos/focusfeatures.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/3/39/Focus_Features.svg", "page": "https://en.wikipedia.org/wiki/Focus_Features"}, {"id": "illumination", "name": "Illumination", "aliases": ["Illumination", "Illumination Entertainment"], "src": "assets/logos/illumination.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Illumination_Entertainment_logo.svg", "page": "https://en.wikipedia.org/wiki/Illumination_(company)"}, {"id": "dreamworks", "name": "DreamWorks Animation", "aliases": ["DreamWorks Animation"], "src": "assets/logos/dreamworks.svg", "source": "https://upload.wikimedia.org/wikipedia/en/f/ff/DreamWorks_Animation_SKG_logo_with_fishing_boy.svg", "page": "https://en.wikipedia.org/wiki/DreamWorks_Animation"}, {"id": "warnerbros", "name": "Warner Bros. Pictures", "aliases": ["Warner Bros. Pictures", "Warner Bros."], "src": "assets/logos/warnerbros.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Warner_Bros._Pictures_2023_%28Alt%29.svg", "page": "https://en.wikipedia.org/wiki/Warner_Bros._Pictures"}, {"id": "newline", "name": "New Line Cinema", "aliases": ["New Line Cinema"], "src": "assets/logos/newline.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/0/0f/New_Line_Cinema_2024.svg", "page": "https://en.wikipedia.org/wiki/New_Line_Cinema"}, {"id": "warneranimation", "name": "Warner Bros. Pictures Animation", "aliases": ["Warner Bros. Pictures Animation", "Warner Animation Group"], "src": "assets/logos/warneranimation.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Warner_Bros._Pictures_Animation_2024.svg", "page": "https://en.wikipedia.org/wiki/Warner_Bros._Pictures_Animation"}, {"id": "columbia", "name": "Columbia Pictures", "aliases": ["Columbia Pictures"], "src": "assets/logos/columbia.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Columbia_Pictures.svg", "page": "https://en.wikipedia.org/wiki/Columbia_Pictures"}, {"id": "tristar", "name": "TriStar Pictures", "aliases": ["TriStar Pictures"], "src": "assets/logos/tristar.svg", "source": "https://upload.wikimedia.org/wikipedia/en/a/a9/TriStar_Pictures_present_day_logo.svg", "page": "https://en.wikipedia.org/wiki/TriStar_Pictures"}, {"id": "sonyclassics", "name": "Sony Pictures Classics", "aliases": ["Sony Pictures Classics"], "src": "assets/logos/sonyclassics.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sony_Pictures_Classics_logo.svg", "page": "https://en.wikipedia.org/wiki/Sony_Pictures_Classics"}, {"id": "sonyanimation", "name": "Sony Pictures Animation", "aliases": ["Sony Pictures Animation"], "src": "assets/logos/sonyanimation.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/0/02/Sony_Pictures_Animation_2018_logo.svg", "page": "https://en.wikipedia.org/wiki/Sony_Pictures_Animation"}, {"id": "paramountpictures", "name": "Paramount Pictures", "aliases": ["Paramount Pictures"], "src": "assets/logos/paramountpictures.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Paramount_Pictures_with_Skydance_byline.svg", "page": "https://en.wikipedia.org/wiki/Paramount_Pictures"}, {"id": "republic", "name": "Republic Pictures", "aliases": ["Republic Pictures"], "src": "assets/logos/republic.svg", "source": "https://upload.wikimedia.org/wikipedia/en/a/a7/Republic-pictures.svg", "page": "https://en.wikipedia.org/wiki/Republic_Pictures"}, {"id": "nickelodeonmovies", "name": "Nickelodeon Movies", "aliases": ["Nickelodeon Movies"], "src": "assets/logos/nickelodeonmovies.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/4/4a/Nickelodeon_Movies_2020.svg", "page": "https://en.wikipedia.org/wiki/Nickelodeon_Movies"}, {"id": "miramax", "name": "Miramax", "aliases": ["Miramax", "Miramax Films"], "src": "assets/logos/miramax.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/e/e2/Miramax_logo.svg", "page": "https://en.wikipedia.org/wiki/Miramax"}, {"id": "lionsgate", "name": "Lionsgate", "aliases": ["Lionsgate", "Lionsgate Films"], "page": "https://en.wikipedia.org/wiki/Lionsgate_Films", "source": "https://static.cdnlogo.com/logos/l/55/lionsgate.svg", "src": "assets/logos/lionsgate.svg"}, {"id": "primevideo", "name": "Prime Video", "aliases": ["Amazon Prime Video", "Prime Video", "Amazon Prime Video with Ads"], "src": "assets/logos/primevideo.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/4/43/Amazon_Prime_Video_logo_%282022%29.svg", "page": "https://commons.wikimedia.org/wiki/File:Amazon_Prime_Video_logo_(2022).svg"}, {"id": "adultswim", "name": "Adult Swim", "aliases": ["Adult Swim"], "src": "assets/logos/adultswim.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Adult_Swim_2003_logo.svg", "page": "https://commons.wikimedia.org/wiki/File:Adult_Swim_2003_logo.svg"}, {"id": "viceland", "name": "Viceland", "aliases": ["Viceland"], "src": "assets/logos/viceland.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/6/67/Viceland.svg", "page": "https://commons.wikimedia.org/wiki/File:Viceland.svg"}, {"id": "disney", "name": "Disney", "aliases": ["Disney"], "src": "assets/logos/disney.svg", "source": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Disney_wordmark.svg", "page": "https://commons.wikimedia.org/wiki/File:Disney_wordmark.svg"}, {"id": "disneypixar", "name": "Disney · Pixar", "aliases": ["Disney · Pixar"], "src": "assets/logos/disneypixar.svg", "note": "Composed from the bundled Disney wordmark and Pixar vectors."}];
+let brandQuery='';
+let brands=[...builtins,...readStore('frame-brands',[])];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const status=s=>$('status').textContent=s;
+const imageURL=(path,size='original')=>`https://image.tmdb.org/t/p/${size}${path}`;
+function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Unable to load this image. Try another image or upload it locally.'));img.src=src})}
+function dataURL(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file)})}
+function sanitizeSvg(raw){
+ const doc=new DOMParser().parseFromString(raw,'image/svg+xml'),root=doc.documentElement;
+ if(root.localName!=='svg'||doc.querySelector('parsererror'))throw new Error('Please choose a valid SVG file.');
+ const paint=['fill','stroke','fill-rule','clip-rule','opacity','fill-opacity','stroke-opacity','stroke-width','stroke-linejoin','stroke-linecap','stop-color','stop-opacity'];
+ const safeValue=v=>!(/javascript:|https?:|data:|@import|expression\s*\(/i.test(v))&&(!/url\s*\(/i.test(v)||/^url\(#[\w.-]+\)$/.test(v));
+ for(const style of root.querySelectorAll('style')){for(const match of style.textContent.matchAll(/([^{}]+)\{([^{}]+)\}/g)){try{for(const el of root.querySelectorAll(match[1].trim())){for(const declaration of match[2].split(';')){const [key,...rest]=declaration.split(':'),value=rest.join(':').trim();if(paint.includes(key?.trim())&&safeValue(value))el.setAttribute(key.trim(),value)}}}catch{}}style.remove()}
+ const allowed=new Set(['svg','g','path','rect','circle','ellipse','polygon','polyline','line','defs','clipPath','mask','title','desc','use','symbol','linearGradient','radialGradient','stop']);
+ for(const el of [...root.querySelectorAll('*')])if(!allowed.has(el.localName))el.remove();
+ for(const el of [root,...root.querySelectorAll('*')]){for(const a of [...el.attributes]){if(/^on/i.test(a.name)||/href/i.test(a.name)&&!/^#[\w.-]+$/.test(a.value)||!safeValue(a.value))el.removeAttribute(a.name)}if(el.hasAttribute('style')){for(const name of paint){const value=el.style.getPropertyValue(name);if(value&&safeValue(value))el.setAttribute(name,value)}el.removeAttribute('style')}}
+ root.setAttribute('xmlns','http://www.w3.org/2000/svg');if(!root.getAttribute('viewBox')){const w=parseFloat(root.getAttribute('width')),h=parseFloat(root.getAttribute('height'));if(!w||!h)throw new Error('SVG needs a viewBox or numeric width and height.');root.setAttribute('viewBox',`0 0 ${w} ${h}`)}
+ const vb=root.getAttribute('viewBox').trim().split(/[ ,]+/).map(Number);if(vb.length!==4||!vb.every(Number.isFinite)||vb[2]<=0||vb[3]<=0)throw new Error('Invalid SVG viewBox.');root.setAttribute('width','1000');root.setAttribute('height',String(Math.min(4000,1000*vb[3]/vb[2])));return new XMLSerializer().serializeToString(root)
+}
+async function trimLogo(img){const surface=document.createElement('canvas');surface.width=img.naturalWidth;surface.height=img.naturalHeight;const c=surface.getContext('2d');c.drawImage(img,0,0);const pixels=c.getImageData(0,0,surface.width,surface.height).data;let left=surface.width,top=surface.height,right=-1,bottom=-1,hasWhite=false,hasBlack=false;for(let y=0;y<surface.height;y++)for(let x=0;x<surface.width;x++)if(pixels[(y*surface.width+x)*4+3]>12){const i=(y*surface.width+x)*4;hasWhite ||= pixels[i]>230&&pixels[i+1]>230&&pixels[i+2]>230;hasBlack ||= pixels[i]<70&&pixels[i+1]<70&&pixels[i+2]<70;left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y)}if(right<left)throw new Error('This SVG has no visible artwork. Convert lettering to paths before uploading.');const out=document.createElement('canvas');out.width=right-left+1;out.height=bottom-top+1;out.getContext('2d').drawImage(surface,left,top,out.width,out.height,0,0,out.width,out.height);const trimmed=await loadImage(out.toDataURL());trimmed.knockoutWhite=hasWhite&&hasBlack;return trimmed}
+// Bounds measured from the supplied templates, expressed as poster percentages.
+const servicePresets={
+ tv:{appletv:{width:9,left:4.3,top:2.86,color:'#000000'},disneyplus:{width:14.1,left:4.85,top:2.24},hulu:{width:12.7,left:5.4,top:3.7},fx:{width:7.5},paramountplus:{width:18},primevideo:{width:17.35},adultswim:{width:16.25},viceland:{width:17},amc:{width:8.36},hbomax:{width:9.4},hbo:{width:11},cbs:{width:10.7},netflix:{width:17.1,original:true},cartoonnetwork:{width:7.3,left:5.4,top:3.6,original:true}},
+ movie:{dc:{width:6.56,bottom:3.3},prime:{width:8.27,bottom:3.71,color:'#00a8e1'},disney:{width:12.8,bottom:3.7},waltdisneypictures:{width:12.8,bottom:3.7},marvelstudios:{width:16,bottom:4.2,original:true},disneypixar:{width:18.2,bottom:4.3},pixar:{width:18.2,bottom:4.3},a24:{width:7,bottom:4.4,color:'#e7476b'}}
 };
+function servicePreset(){return servicePresets[mode][layers.service.brandId]||{}}
+function serviceLayout(){const l=layers.service,ratio=l.img?l.img.naturalWidth/l.img.naturalHeight:1.72,p=servicePreset();const width=p.width??(mode==='tv'?Math.min(18,4.5*ratio):Math.min(8.2,6*ratio)),height=width/ratio/1.5;Object.assign(l,mode==='tv'?{width,x:(p.left??4.3)+width/2,y:(p.top??2.86)+height/2}:{width,x:50,y:100-(p.bottom??3.8)-height/2})}
+function matchBrand(name,names=[]){if(mode==='tv'&&/^(Amazon|Amazon Prime Video|Prime Video|Amazon Prime Video with Ads)$/i.test(name))return brands.find(b=>b.id==='primevideo');if(mode==='movie'&&/^(Pixar|Pixar Animation Studios)$/.test(name))return brands.find(b=>b.id==='disneypixar');if(mode==='movie'&&name==='Walt Disney Pictures')return brands.find(b=>b.id===(names.some(n=>/Pixar/i.test(n.name))?'disneypixar':'disney'));return brands.find(b=>(b.aliases||[b.name]).some(a=>a.toLowerCase()===name.toLowerCase()))}
 
-const els = {
-  palette: document.querySelector('#palette'), status: document.querySelector('#paletteStatus'),
-  harmony: document.querySelector('#harmonySelect'), harmonyTrigger: document.querySelector('#harmonyTrigger'), harmonyMenu: document.querySelector('#harmonyMenu'), harmonyLabel: document.querySelector('#harmonyLabel'), themeToggle: document.querySelector('#themeToggle'),
-  generate: document.querySelector('#generateButton'), add: document.querySelector('#addColorButton'),
-  variations: document.querySelector('#variationsButton'), variationView: document.querySelector('#variationsView'),
-  closeDialog: document.querySelector('#closeVariations'), variationGrid: document.querySelector('#variationGrid'),
-  adjustmentsButton: document.querySelector('#adjustmentsButton'), adjustmentsPanel: document.querySelector('#adjustmentsPanel'),
-  closeAdjustments: document.querySelector('#closeAdjustments'),
-  exportButton: document.querySelector('#exportButton'), exportMenu: document.querySelector('#exportMenu'),
-  toast: document.querySelector('#toast'), reset: document.querySelector('#resetAdjustments'),
-  editor: document.querySelector('#colorEditor'), editorValue: document.querySelector('#editorValue'), editorFormat: document.querySelector('#editorFormat'), editorHue: document.querySelector('#editorHue'), colorPlane: document.querySelector('#colorPlane')
-};
+const undoStack=[],redoStack=[];let editTarget=null;
+function snapshot(){return {layers:Object.fromEntries(Object.entries(layers).map(([id,l])=>[id,{...l}])),mode,media,images,selectedLayer,titleLanguage,name:$('workspaceName').textContent,search:$('search').value}}
+function checkpoint(state=snapshot()){undoStack.push(state);if(undoStack.length>60)undoStack.shift();redoStack.length=0;updateUndo()}
+function updateUndo(){$('undoBtn').disabled=!undoStack.length}
+function restore(state){selectionVersion++;searchVersion++;brandVersion++;randomVersion++;artworkVersions.poster++;artworkVersions.title++;for(const [id,l] of Object.entries(state.layers))Object.assign(layers[id],l);mode=state.mode;media=state.media;images=state.images;selectedLayer=state.selectedLayer;titleLanguage=state.titleLanguage||"all";$('workspaceName').textContent=state.name;$('search').value=state.search;$('tvTab').classList.toggle('active',mode==='tv');$('movieTab').classList.toggle('active',mode==='movie');$('search').placeholder=mode==='tv'?'Search TV shows…':'Search movies…';$('results').innerHTML='';$('demoBtn').disabled=false;editTarget=null;refresh();properties();updateUndo()}
+function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());status('Last edit undone.')}
+function redo(){if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());status('Edit restored.')}
 
-const initial = ['#EF476F', '#F78C6B', '#FFD166', '#06D6A0', '#118AB2', '#073B4C'];
-let state = {
-  colors: initial.map((hex, i) => ({ id: crypto.randomUUID?.() || `${Date.now()}-${i}`, hex, locked: false })),
-  baseColors: [...initial], format: 'hex', harmony: 'balanced', variation: 'luminance',
-  adjustments: { hue: 0, saturation: 0, brightness: 0, temperature: 0 }
-};
+const svgURL=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+function rectFor(l){const width=W*l.width/100,height=width*l.img.naturalHeight/l.img.naturalWidth;return {x:W*l.x/100-width/2,y:H*l.y/100-height/2,w:width,h:height}}
+function drawServiceShadow(target,l,r){
+ if(!l.shadowEnabled)return;
+ // Equal x/y distances give a true 45-degree fade. Paint the whole
+ // poster so transparency, rather than a cropped box, defines its edge.
+ const right=l.x>50,bottom=l.y>50;
+ const x=right?W:0,y=bottom?H:0,dx=right?-1:1,dy=bottom?-1:1;
+ const logoX=right?W-r.x:r.x+r.w,logoY=bottom?H-r.y:r.y+r.h;
+ const reach=(logoX+logoY)/Math.SQRT2+H*l.shadowHeight/100;
+ const step=reach/Math.SQRT2,rgb=l.shadowColor.match(/\w\w/g).map(v=>parseInt(v,16));
+ const gradient=target.createLinearGradient(x,y,x+dx*step,y+dy*step);
+ const opacity=l.shadowOpacity/100,hold=1-Math.max(.01,l.shadowSpread/100);
+ gradient.addColorStop(0,`rgba(${rgb},${opacity})`);
+ if(hold>0)gradient.addColorStop(hold,`rgba(${rgb},${opacity})`);
+ gradient.addColorStop(1,`rgba(${rgb},0)`);
+ target.fillStyle=gradient;target.fillRect(0,0,W,H);
+}
+function draw(target=ctx){target.clearRect(0,0,W,H);target.fillStyle='#222222';target.fillRect(0,0,W,H);if(layers.poster.visible&&layers.poster.img){const im=layers.poster.img,s=Math.max(W/im.width,H/im.height);target.drawImage(im,(W-im.width*s)/2,(H-im.height*s)/2,im.width*s,im.height*s)}const g=layers.gradient;if(g.visible){const top=H*(1-g.height/100),gradient=target.createLinearGradient(0,top,0,H),rgb=g.color.match(/\w\w/g).map(x=>parseInt(x,16));gradient.addColorStop(0,`rgba(${rgb},0)`);gradient.addColorStop(Math.max(.01,g.spread/100),`rgba(${rgb},${g.opacity/100})`);gradient.addColorStop(1,`rgba(${rgb},${g.opacity/100})`);target.fillStyle=gradient;target.fillRect(0,top,W,H-top)}for(const id of ['title','service']){const l=layers[id];if(!l.visible||!l.img)continue;const r=rectFor(l);if(id==='service')drawServiceShadow(target,l,r);if(id==='service'&&l.recolor){const mask=document.createElement('canvas');mask.width=Math.max(1,Math.round(r.w));mask.height=Math.max(1,Math.round(r.h));const c=mask.getContext('2d');c.drawImage(l.img,0,0,mask.width,mask.height);if(l.img.knockoutWhite||l.brandId==='cartoonnetwork'){const pixels=c.getImageData(0,0,mask.width,mask.height);for(let i=0;i<pixels.data.length;i+=4){if(pixels.data[i]>230&&pixels.data[i+1]>230&&pixels.data[i+2]>230)pixels.data[i+3]=0}c.putImageData(pixels,0,0)}c.globalCompositeOperation='source-in';c.fillStyle=l.color;c.fillRect(0,0,mask.width,mask.height);target.drawImage(mask,r.x,r.y,r.w,r.h)}else target.drawImage(l.img,r.x,r.y,r.w,r.h)}}
+function refresh(){draw();$('emptyCanvas').hidden=!!layers.poster.img;$('exportBtn').disabled=!layers.poster.img;renderLayers();updateUndo()}
+const iconPaths={service:'<path d="m12 3 9 9-9 9-9-9z"/><path d="m8 12 4-4 4 4-4 4z"/>',title:'<path d="M4 5h16M12 5v15M8 20h8"/>',gradient:'<rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 9h16M4 13h16M4 17h16"/>',poster:'<rect x="4" y="3" width="16" height="18" rx="1"/><circle cx="9" cy="8" r="1"/><path d="m4 17 6-6 5 5 3-3 2 2"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',hidden:'<path d="m3 3 18 18M10 5h2c6 0 10 7 10 7a22 22 0 0 1-4 5M6 6a22 22 0 0 0-4 6s4 7 10 7h2"/>'};
+function uiIcon(name){return `<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${iconPaths[name]}</svg>`}
+function renderLayers(){const labels={service:['Service / studio',brands.find(b=>b.id===layers.service.brandId)?.name||'Choose a logo'],title:['Title logo',layers.title.img?'Artwork selected':'Upload or choose from TMDB'],gradient:['Gradient','Color & fade'],poster:['Poster',layers.poster.img?'Artwork selected':'No artwork yet']};$('layers').innerHTML=['service','title','gradient','poster'].map(id=>`<div class="layer ${selectedLayer===id?'active':''}"><button class="layer-select" data-layer="${id}"><span class="layer-icon">${uiIcon(id)}</span><span>${labels[id][0]}<small>${esc(labels[id][1])}</small></span></button><button class="eye" data-eye="${id}" aria-label="${layers[id].visible?'Hide':'Show'} ${labels[id][0]}" aria-pressed="${layers[id].visible}">${uiIcon(layers[id].visible?'eye':'hidden')}</button></div>`).join('')}
 
-function clamp(n, min = 0, max = 100) { return Math.min(max, Math.max(min, n)); }
-function wrap(n, max = 360) { return ((n % max) + max) % max; }
-function hexToRgb(hex) {
-  const raw = hex.replace('#', '').trim();
-  if (!/^[0-9a-f]{6}$/i.test(raw)) return null;
-  return { r: parseInt(raw.slice(0,2),16), g: parseInt(raw.slice(2,4),16), b: parseInt(raw.slice(4,6),16) };
+const slider=(key,label,value,min=0,max=100)=>`<div class="prop-row"><label for="prop-${key}">${label}</label><output id="out-${key}">${Number(value).toFixed(1)}%</output></div><input id="prop-${key}" data-prop="${key}" type="range" step="0.1" min="${min}" max="${max}" value="${value}">`;
+function normalizeHex(value){const hex=value.trim().replace(/^#/,'');if(!/^(?:[a-f0-9]{3}|[a-f0-9]{6})$/i.test(hex))return null;return '#'+(hex.length===3?[...hex].map(c=>c+c).join(''):hex).toLowerCase()}
+function colorControl(key,label,value){return `<div class="color-control"><label for="hex-${key}">${label}</label><div class="color-fields"><input id="prop-${key}" data-prop="${key}" type="color" value="${value}" aria-label="${label} picker"><input id="hex-${key}" data-prop="${key}" data-hex="true" type="text" value="${value}" placeholder="#RRGGBB" maxlength="7" spellcheck="false" aria-label="${label} hex code"></div><button type="button" class="wide" data-pick="${key}">Pick from poster</button></div>`}
+let pickingColor=null;
+function cancelColorPick(){pickingColor=null;canvas.classList.remove('color-picking')}
+function syncColorControls(key,value){$('prop-'+key).value=value;$('hex-'+key).value=value;$('hex-'+key).setAttribute('aria-invalid','false')}
+function applyPickedColor(layer,key,value){checkpoint();layers[layer][key]=value;if(layer==='service'&&key==='color')layers.service.recolor=true;cancelColorPick();draw();properties();status('Color selected: '+value)}
+canvas.onclick=e=>{if(!pickingColor)return;const bounds=canvas.getBoundingClientRect(),x=Math.max(0,Math.min(W-1,Math.floor((e.clientX-bounds.left)/bounds.width*W))),y=Math.max(0,Math.min(H-1,Math.floor((e.clientY-bounds.top)/bounds.height*H)));try{const pixel=ctx.getImageData(x,y,1,1).data;const hex='#'+Array.from(pixel).slice(0,3).map(v=>v.toString(16).padStart(2,'0')).join('');applyPickedColor(pickingColor.layer,pickingColor.key,hex)}catch{cancelColorPick();status('This image host blocks color sampling. Upload the poster locally to pick its colors.')}};
+function properties(){const l=layers[selectedLayer];let html='<div class="section-title">'+({service:'Service / studio',title:'Title logo',gradient:'Gradient',poster:'Poster'})[selectedLayer]+'</div>';
+ if(selectedLayer==='service'){html+=`<label class="label" for="brandSearch">SEARCH LOGOS</label><input id="brandSearch" type="search" value="${esc(brandQuery)}" placeholder="Search channels, services, studios"><div id="brandChoices" class="brand-choices"></div><label class="label" for="serviceSelect">SELECTED LOGO</label><select id="serviceSelect"><option value="">No logo</option>${brands.map(b=>`<option value="${esc(b.id)}" ${b.id===l.brandId?'selected':''}>${esc(b.name)}</option>`).join('')}</select><button id="uploadService" class="wide" style="margin-top:12px">↑ Upload custom SVG to library</button><label class="check"><input id="originalColors" type="checkbox" ${l.recolor?'':'checked'}> Original logo colors</label>${colorControl("color","Logo color",l.color)}`}
+ if(['service','title'].includes(selectedLayer))html+=slider('width','Size',l.width,1,100)+slider('x','Horizontal position',l.x)+slider('y','Vertical position',l.y)+'<button id="centerHorizontal" class="wide">Center horizontally</button>';
+ else if(selectedLayer==='gradient')html+=colorControl("color","Color",l.color)+slider('height','Height',l.height,1,100)+slider('spread','Fade spread',l.spread,1,100)+slider('opacity','Opacity',l.opacity);
+ else html+='<p class="muted">Artwork fills the 2:3 canvas. Other ratios are center-cropped.</p>';
+ if(selectedLayer==='service'){
+ html+=`<div class="divider"></div><label class="check"><input id="serviceShadow" type="checkbox" ${l.shadowEnabled?'checked':''}> Diagonal logo gradient</label>`;
+ if(l.shadowEnabled)html+=colorControl("shadowColor","Gradient color",l.shadowColor)+slider('shadowHeight','Height',l.shadowHeight,1,50)+slider('shadowSpread','Fade spread',l.shadowSpread,1,100)+slider('shadowOpacity','Opacity',l.shadowOpacity);
+ }
+ $('properties').innerHTML=html;if(selectedLayer==='service')renderBrandChoices();renderArtwork()
 }
-function rgbToHex(r,g,b) { return `#${[r,g,b].map(v => Math.round(clamp(v,0,255)).toString(16).padStart(2,'0')).join('').toUpperCase()}`; }
-function rgbToHsl(r,g,b) {
-  r/=255; g/=255; b/=255; const max=Math.max(r,g,b), min=Math.min(r,g,b); let h=0,s=0; const l=(max+min)/2;
-  if (max !== min) { const d=max-min; s=l>.5?d/(2-max-min):d/(max+min); switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;} h*=60; }
-  return { h, s:s*100, l:l*100 };
-}
-function hslToRgb(h,s,l) {
-  h=wrap(h)/360; s=clamp(s)/100; l=clamp(l)/100;
-  if (!s) { const v=Math.round(l*255); return {r:v,g:v,b:v}; }
-  const hue2rgb=(p,q,t)=>{if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;};
-  const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;
-  return {r:hue2rgb(p,q,h+1/3)*255,g:hue2rgb(p,q,h)*255,b:hue2rgb(p,q,h-1/3)*255};
-}
-function hslToHex(h,s,l) { const {r,g,b}=hslToRgb(h,s,l); return rgbToHex(r,g,b); }
-function hexToHsl(hex) { const rgb=hexToRgb(hex); return rgb ? rgbToHsl(rgb.r,rgb.g,rgb.b) : null; }
-function contrast(hex) { const {r,g,b}=hexToRgb(hex); const lum=(.299*r+.587*g+.114*b)/255; return lum>.62?'#16171a':'#ffffff'; }
-function displayValue(hex) {
-  const rgb=hexToRgb(hex), hsl=hexToHsl(hex);
-  if (state.format==='rgb') return `${rgb.r}, ${rgb.g}, ${rgb.b}`;
-  if (state.format==='hsl') return `${Math.round(hsl.h)}°, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%`;
-  return hex;
-}
-function parseColor(value) {
-  const clean=value.trim();
-  if (/^#?[0-9a-f]{6}$/i.test(clean)) return `#${clean.replace('#','').toUpperCase()}`;
-  const nums=clean.match(/-?\d+(?:\.\d+)?/g)?.map(Number);
-  if (!nums || nums.length<3) return null;
-  if (state.format==='hsl' || /hsl/i.test(clean)) return hslToHex(nums[0],nums[1],nums[2]);
-  return rgbToHex(nums[0],nums[1],nums[2]);
-}
-function colorName(hex) {
-  const {h,s,l}=hexToHsl(hex);
-  if(l<13)return 'Near black'; if(l>92)return 'Soft white'; if(s<10)return l<50?'Slate gray':'Mist gray';
-  const names=['Crimson','Tangerine','Amber','Chartreuse','Emerald','Seafoam','Cyan','Azure','Indigo','Violet','Magenta','Rose'];
-  const base=names[Math.round(wrap(h)/30)%12];
-  return `${l<34?'Deep ':l>72?'Light ':s<45?'Soft ':''}${base}`;
-}
-function showToast(message) { els.toast.textContent=message; els.toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>els.toast.classList.remove('show'),1600); }
-function lockIcon(locked) {
-  return locked
-    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3M6 10h12v10H6z"/></svg>'
-    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a5 5 0 0 1 9.6-2M6 10h12v10H6z"/></svg>';
-}
-const pencilIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.5-1 10.7-10.7-3.5-3.5L5 15.5 4 20Z"/><path d="m13.8 6.7 3.5 3.5"/></svg>';
-function setFormat(format){state.format=format;render();}
-function setTheme(theme){
-  document.documentElement.dataset.theme=theme;
-  els.themeToggle.setAttribute('aria-pressed',String(theme==='dark'));
-  els.themeToggle.setAttribute('aria-label',`Switch to ${theme==='dark'?'light':'dark'} theme`);
-  els.themeToggle.title=`Switch to ${theme==='dark'?'light':'dark'} theme`;
-  try{localStorage.setItem('cooleur-theme',theme);}catch{}
-}
+function matchingBrands(query){const q=query.trim().toLowerCase();return brands.filter(b=>[b.name,...(b.aliases||[])].some(n=>n.toLowerCase().includes(q)))}
+function renderBrandChoices(){const list=matchingBrands(brandQuery);$('brandChoices').innerHTML=list.length?list.map(b=>`<button class="brand-choice ${b.id===layers.service.brandId?'selected':''}" data-brand="${esc(b.id)}" aria-label="Select ${esc(b.name)}"><img src="${b.svg?svgURL(b.svg):b.src}" alt="${esc(b.name)} logo" loading="lazy"><span>${esc(b.name)}</span></button>`).join(''):'<p class="muted">No matching logos. Upload a custom SVG below.</p>'}
+function layout(){Object.assign(layers.title,{x:50,y:mode==='tv'?84:82,width:78});serviceLayout();refresh();properties()}
+let brandVersion=0;
+async function selectBrand(id,record=true){const before=snapshot();const version=++brandVersion,b=brands.find(b=>b.id===id);if(!b){if(record)checkpoint(before);Object.assign(layers.service,{img:null,brandId:''});refresh();properties();return}try{let raw=b.svg;if(!raw){const response=await fetch(b.src);if(!response.ok)throw new Error('This bundled logo could not be loaded. Upload an SVG in the logo library.');raw=await response.text()}const img=await trimLogo(await loadImage(svgURL(sanitizeSvg(raw))));if(version!==brandVersion)return;if(record)checkpoint(before);Object.assign(layers.service,{img,brandId:id,visible:true,recolor:true,color:'#ffffff'});const preset=servicePreset();layers.service.recolor=!preset.original;layers.service.color=preset.color||'#ffffff';serviceLayout();refresh();properties()}catch(e){status(e.message)}}
+async function api(path,params={},signal){if(!credential)throw new Error('Connect TMDB first, or upload your own artwork.');const u=new URL('https://api.themoviedb.org/3/'+path);Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));const headers={accept:'application/json'};if(credential.length<60)u.searchParams.set('api_key',credential);else headers.Authorization='Bearer '+credential;const r=await fetch(u,{headers,signal});if(!r.ok)throw new Error(r.status===401?'TMDB rejected this credential. Check your token or API key.':r.status===429?'TMDB is busy. Please try again shortly.':`TMDB request failed (${r.status}).`);return r.json()}
+async function searchTitles(){const q=$('search').value.trim(),version=++searchVersion;if(q.length<2){$('results').innerHTML='';return}if(!credential){$('results').innerHTML='<p class="muted">Connect TMDB using the button above to search.</p>';return}$('results').innerHTML='<p class="muted">Searching…</p>';try{const data=await api(`search/${mode}`,{query:q,include_adult:false,language:'en-US'});if(version!==searchVersion)return;$('results').innerHTML=data.results.slice(0,8).map(t=>`<button class="result" data-result="${t.id}">${t.poster_path?`<img src="${imageURL(t.poster_path,'w92')}" alt="">`:'<span>▧</span>'}<span>${esc(t.name||t.title)}<small>${esc((t.first_air_date||t.release_date||'').slice(0,4)||'Unknown year')}</small></span></button>`).join('')||'<p class="muted">No matching titles. Try another name.</p>';const map=new Map(data.results.map(t=>[t.id,t]));$('results').querySelectorAll('[data-result]').forEach(b=>b.onclick=()=>selectTitle(map.get(Number(b.dataset.result))))}catch(e){if(version===searchVersion)$('results').textContent=e.message}}
+function filteredTitleLogos(){return images.logos.filter(p=>titleLanguage==='all'||(p.iso_639_1||'neutral')===titleLanguage)}
+function renderTitleLanguages(){const codes=[...new Set(images.logos.map(p=>p.iso_639_1||'neutral'))].sort();const names=new Intl.DisplayNames(['en'],{type:'language'});$('titleLanguage').innerHTML='<option value="all">All languages</option>'+codes.map(code=>`<option value="${esc(code)}">${esc(code==='neutral'?'Language-neutral':names.of(code)||code)}</option>`).join('');$('titleLanguage').value=titleLanguage;$('titleLanguageField').hidden=selectedLayer!=='title'}
+function renderArtwork(){renderTitleLanguages();const active=['poster','title'].includes(selectedLayer);$('artworkPanel').hidden=!active;if(!active)return;assetTab=selectedLayer==='poster'?'posters':'logos';$('artworkLabel').textContent=selectedLayer==='poster'?'Poster artwork':'Title artwork';$('uploadPosterBtn').hidden=selectedLayer!=='poster';$('uploadTitleBtn').hidden=selectedLayer!=='title';const list=assetTab==='posters'?images.posters.filter(p=>!$('neutralOnly').checked||p.iso_639_1===null):filteredTitleLogos();$('assetCount').textContent=list.length;$('neutralOnly').closest('label').hidden=assetTab!=='posters';$('artwork').innerHTML=list.length?list.map((p,i)=>`<button data-art="${i}" title="${p.iso_639_1||'Language-neutral'} · ${p.width} × ${p.height}" class="${layers[selectedLayer].src===imageURL(p.file_path)?'selected':''}"><img class="${assetTab==='logos'?'logo-thumb':''}" src="${imageURL(p.file_path,assetTab==='posters'?'w185':'w500')}" alt="${assetTab==='posters'?'Poster':'Title logo'} option ${i+1}" loading="lazy"></button>`).join(''):`<p class="muted">${media?'No matching artwork. Upload your own'+(assetTab==='posters'?' or show other languages':'')+'.':'Select a TMDB title or upload artwork.'}</p>`;const layer=selectedLayer;$('artwork').querySelectorAll('[data-art]').forEach(b=>b.onclick=()=>setArtwork(layer,imageURL(list[Number(b.dataset.art)].file_path)))}
+const artworkVersions={poster:0,title:0};
+async function setArtwork(layer,src,record=true){const before=snapshot();const v=++artworkVersions[layer];try{status('Loading artwork…');const img=await loadImage(src);if(v!==artworkVersions[layer])return false;if(record)checkpoint(before);Object.assign(layers[layer],{img,src,visible:true});refresh();renderArtwork();status('Artwork ready. Make it yours.');return true}catch(e){if(v===artworkVersions[layer])status(e.message);return false}}
+async function selectTitle(t,fromRandom=false){if(!fromRandom){randomVersion++;$('demoBtn').disabled=false}checkpoint();const version=++selectionVersion;artworkVersions.poster++;artworkVersions.title++;brandVersion++;const currentMode=mode;media=t;selectedLayer='poster';layers.poster.visible=true;layers.gradient.visible=true;layers.title.visible=true;layers.service.visible=true;images={posters:[],logos:[]};Object.assign(layers.poster,{img:null,src:''});Object.assign(layers.title,{img:null,src:''});Object.assign(layers.service,{img:null,brandId:'',shadowEnabled:false});layout();$('results').innerHTML='';$('search').value=t.name||t.title;$('workspaceName').textContent=t.name||t.title;renderArtwork();status('Finding posters, title logos, and networks…');try{const [detail,art]=await Promise.all([api(`${currentMode}/${t.id}`),api(`${currentMode}/${t.id}/images`)]);if(version!==selectionVersion)return;images={posters:art.posters||[],logos:(art.logos||[]).sort((a,b)=>(b.iso_639_1==='en')-(a.iso_639_1==='en')||(b.vote_average||0)-(a.vote_average||0))};titleLanguage=images.logos.some(p=>p.iso_639_1==='en')?'en':'all';const poster=images.posters.find(p=>p.iso_639_1===null);const jobs=[];if(poster)jobs.push(setArtwork('poster',imageURL(poster.file_path),false));else if(t.poster_path)jobs.push(setArtwork('poster',imageURL(t.poster_path),false));if(images.logos[0])jobs.push(setArtwork('title',imageURL(images.logos[0].file_path),false));const names=(currentMode==='tv'?detail.networks:detail.production_companies)||[];let brand=names.map(n=>matchBrand(n.name,names)).find(Boolean);if(!brand){try{const providers=await api(`${currentMode}/${t.id}/watch/providers`);if(version!==selectionVersion)return;brand=(providers.results?.[region]?.flatrate||[]).map(n=>matchBrand(n.provider_name)).find(Boolean)}catch{}}jobs.push(selectBrand(brand?.id||'',false));await Promise.all(jobs);if(version!==selectionVersion)return;renderArtwork();status((!layers.poster.img?'No usable poster loaded; upload your own artwork.':poster?'Language-neutral poster selected.':'No language-neutral poster found; using the standard poster.')+(brand?` ${brand.name} suggested from TMDB metadata / ${region} streaming availability.`:' Choose a service or studio logo manually.')+(!images.logos.length?' No title logo found; you can upload one.':''))}catch(e){if(version===selectionVersion)status(e.message)}}
+function setMode(next){if(mode===next)return;checkpoint();mode=next;randomVersion++;$('demoBtn').disabled=false;selectedLayer='poster';selectionVersion++;searchVersion++;$('tvTab').classList.toggle('active',mode==='tv');$('movieTab').classList.toggle('active',mode==='movie');$('search').placeholder=mode==='tv'?'Search TV shows…':'Search movies…';$('search').value='';$('results').innerHTML='';media=null;layers.gradient.visible=true;layers.title.visible=true;layers.service.visible=true;images={posters:[],logos:[]};artworkVersions.poster++;artworkVersions.title++;brandVersion++;for(const id of ['poster','title','service']){layers[id].img=null;layers[id].src=''}layers.service.brandId='';layers.service.shadowEnabled=false;$('workspaceName').textContent='Untitled poster';layout();renderArtwork();status('Ready when you are.')}
+function persistBrands(){localStorage.setItem('frame-brands',JSON.stringify(brands.filter(b=>b.svg)))}
+function renderLibrary(){$('brandGrid').innerHTML=matchingBrands($('librarySearch').value).map(b=>`<article class="brand-card"><img src="${b.svg?svgURL(b.svg):b.src}" alt="${esc(b.name)} logo"><div class="section-title">${esc(b.name)}</div><span class="tiny">${b.svg?'CUSTOM SVG':'BUNDLED SVG'}</span>${b.svg?`<br><button class="remove" data-remove="${esc(b.id)}">Remove</button>`:''}</article>`).join('');$('brandGrid').querySelectorAll('[data-remove]').forEach(btn=>btn.onclick=()=>{brands=brands.filter(b=>b.id!==btn.dataset.remove);persistBrands();if(layers.service.brandId===btn.dataset.remove)selectBrand('');renderLibrary();properties()})}
+function download(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('studioNav').onclick=()=>{ $('studio').hidden=false;$('library').hidden=true;$('studioNav').classList.add('active');$('libraryNav').classList.remove('active')};$('libraryNav').onclick=()=>{$('studio').hidden=true;$('library').hidden=false;$('studioNav').classList.remove('active');$('libraryNav').classList.add('active');renderLibrary()};
+$('tvTab').onclick=()=>setMode('tv');$('movieTab').onclick=()=>setMode('movie');$('search').oninput=()=>{clearTimeout(searchTimer);searchVersion++;searchTimer=setTimeout(searchTitles,350)};
+$('settingsBtn').onclick=()=>{$('credential').value=credential;$('remember').checked=!!localStorage.getItem('frame-token');$('region').value=region;$('settings').showModal()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
+$('settingsForm').onsubmit=e=>{e.preventDefault();region=$('region').value;localStorage.setItem('frame-region',region);credential=$('credential').value.trim();sessionStorage.setItem('frame-token',credential);if($('remember').checked)localStorage.setItem('frame-token',credential);else localStorage.removeItem('frame-token');$('settings').close();status(credential?'TMDB credential saved. Search for a title to begin.':'TMDB disconnected.');if($('search').value)searchTitles()};$('disconnectBtn').onclick=()=>{credential='';localStorage.removeItem('frame-token');sessionStorage.removeItem('frame-token');$('credential').value='';$('settings').close();status('TMDB disconnected.')};
+$('layers').onclick=e=>{const eye=e.target.closest('[data-eye]'),btn=e.target.closest('[data-layer]');if(eye){checkpoint();layers[eye.dataset.eye].visible=!layers[eye.dataset.eye].visible;refresh()}else if(btn){cancelColorPick();selectedLayer=btn.dataset.layer;renderLayers();properties()}};
+$('properties').oninput=e=>{if(e.target.id==='brandSearch'){brandQuery=e.target.value;renderBrandChoices();return}if(!e.target.dataset.prop)return;const key=e.target.dataset.prop,isColor=['color','shadowColor'].includes(key);let value=isColor?normalizeHex(e.target.value):Number(e.target.value);if(isColor&&!value){e.target.setAttribute('aria-invalid','true');return}if(editTarget!==e.target){checkpoint();editTarget=e.target}layers[selectedLayer][key]=value;if(isColor){$('prop-'+key).value=value;if(!e.target.dataset.hex)$('hex-'+key).value=value;e.target.setAttribute('aria-invalid','false')}if(selectedLayer==='service'&&key==='color'){layers.service.recolor=true;$('originalColors').checked=false}if($('out-'+key))$('out-'+key).textContent=Number.isFinite(Number(e.target.value))?Number(e.target.value).toFixed(1)+'%':e.target.value;draw()};
+$('properties').onchange=e=>{editTarget=null;if(e.target.dataset?.hex){const key=e.target.dataset.prop;syncColorControls(key,layers[selectedLayer][key])}if(e.target.id==='serviceShadow'){checkpoint();layers.service.shadowEnabled=e.target.checked;draw();properties()}if(e.target.id==='serviceSelect')selectBrand(e.target.value);if(e.target.id==='originalColors'){checkpoint();layers.service.recolor=!e.target.checked;draw()}};
+let addFromLayer=false;
+function openBrandDialog(fromLayer){addFromLayer=fromLayer;$('addBrand').showModal()}
+$('properties').onclick=e=>{const pick=e.target.closest('[data-pick]');if(pick?.dataset?.pick){if(!layers.poster.img){status('Upload or select a poster first.');return}pickingColor={layer:selectedLayer,key:pick.dataset.pick};canvas.classList.add('color-picking');canvas.focus();status('Click a color on the poster. Press Escape to cancel.');return}const brand=e.target.closest('[data-brand]');if(brand?.dataset?.brand){selectBrand(brand.dataset.brand);return}if(e.target.id==='uploadService')openBrandDialog(true);if(e.target.id==='centerHorizontal'){checkpoint();layers[selectedLayer].x=50;refresh();properties();status('Logo centered horizontally.')}};
+$('neutralOnly').onchange=renderArtwork;$('titleLanguage').onchange=e=>{titleLanguage=e.target.value;renderArtwork()};
+$('uploadPosterBtn').onclick=()=>$('posterFile').click();$('uploadTitleBtn').onclick=()=>$('titleFile').click();for(const [input,layer] of [['posterFile','poster'],['titleFile','title']])$(input).onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const src=file.type==='image/svg+xml'||file.name.endsWith('.svg')?svgURL(sanitizeSvg(await file.text())):await dataURL(file);if(!await setArtwork(layer,src)){e.target.value='';return}selectedLayer=layer;if(layer==='poster'&&!media){$('workspaceName').textContent=file.name.replace(/\.[^.]+$/,'');layers.gradient.visible=true}refresh();properties()}catch(err){status(err.message)}e.target.value=''};
+$('resetBtn').onclick=()=>{checkpoint();layout()};
+let randomVersion=0,lastRandomId=null;
+async function randomSample(){if(!credential){status('Connect TMDB to load a random sample.');$('settingsBtn').onclick();return}const version=++randomVersion,currentMode=mode;$('demoBtn').disabled=true;status('Choosing a random title from TMDB…');try{const data=await api(`discover/${currentMode}`,{sort_by:'popularity.desc',page:1+Math.floor(Math.random()*10),include_adult:false,language:'en-US'});if(version!==randomVersion||currentMode!==mode)return;const choices=(data.results||[]).filter(t=>t.poster_path&&t.id!==lastRandomId);if(!choices.length)throw new Error('No sample artwork returned. Try again.');const title=choices[Math.floor(Math.random()*choices.length)];lastRandomId=title.id;await selectTitle(title,true)}catch(e){if(version===randomVersion)status(e.message)}finally{if(version===randomVersion)$('demoBtn').disabled=false}}
+$('demoBtn').onclick=randomSample;
+$('undoBtn').onclick=undo;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&pickingColor){cancelColorPick();status('Color selection cancelled.');return}if(!(e.ctrlKey||e.metaKey))return;const tag=e.target?.tagName,type=e.target?.type;if(e.target?.isContentEditable||tag==='TEXTAREA'||tag==='INPUT'&&!['range','color','checkbox'].includes(type))return;if(e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo()}else if(e.key.toLowerCase()==='y'){e.preventDefault();redo()}});
+$('exportBtn').onclick=()=>{if(!layers.poster.img)return;const out=document.createElement('canvas');out.width=W;out.height=H;draw(out.getContext('2d'));try{out.toBlob(blob=>{if(blob){download(blob,($('workspaceName').textContent.replace(/[^a-z0-9_-]+/gi,'-')||'poster')+'.png');status('Exported 1000 × 1500 PNG, ready for Plex.')}else status('Export failed. Try uploading your images locally.')},'image/png')}catch(e){status('Export blocked by the image host. Upload the image locally and try again.')}};
+canvas.onkeydown=e=>{if(!['service','title'].includes(selectedLayer)||!e.key.startsWith('Arrow'))return;e.preventDefault();if(!e.repeat)checkpoint();const l=layers[selectedLayer],amount=e.shiftKey?2:.25;if(e.key==='ArrowLeft')l.x-=amount;if(e.key==='ArrowRight')l.x+=amount;if(e.key==='ArrowUp')l.y-=amount;if(e.key==='ArrowDown')l.y+=amount;l.x=Math.max(0,Math.min(100,l.x));l.y=Math.max(0,Math.min(100,l.y));draw();properties()};
+$('addBrandBtn').onclick=()=>openBrandDialog(false);$('brandForm').onsubmit=async e=>{e.preventDefault();try{const file=$('brandFile').files[0];if(file.size>2e6)throw new Error('Please choose an SVG smaller than 2 MB.');const svg=sanitizeSvg(await file.text());await trimLogo(await loadImage(svgURL(svg)));const b={id:crypto.randomUUID(),name:$('brandName').value.trim(),svg};if(!b.name)throw new Error('Enter a logo name.');brands.push(b);try{persistBrands()}catch(err){brands.pop();throw new Error('Browser storage is full. Remove a custom logo and try again.')}renderLibrary();properties();$('brandForm').reset();$('addBrand').close();if(addFromLayer)await selectBrand(b.id)}catch(err){alert(err.message)}};
+$('backupBtn').onclick=()=>download(new Blob([JSON.stringify(brands.filter(b=>b.svg),null,2)],{type:'application/json'}),'posterr-logo-library.json');$('restoreBtn').onclick=()=>$('restoreFile').click();$('restoreFile').onchange=async e=>{try{const data=JSON.parse(await e.target.files[0].text());if(!Array.isArray(data)||data.length>100)throw new Error('Invalid logo library.');const added=data.map(b=>{if(typeof b.name!=='string'||typeof b.svg!=='string')throw new Error('Invalid logo entry.');return {id:crypto.randomUUID(),name:b.name.slice(0,80),svg:sanitizeSvg(b.svg)}});const previous=brands;brands=[...brands,...added];try{persistBrands()}catch(err){brands=previous;throw err}renderLibrary();properties()}catch(err){alert('Could not import logos: '+err.message)}e.target.value=''};
+layout();
 
-function render() {
-  els.palette.innerHTML='';
-  const buttonColor=state.colors.find(c=>!c.locked)?.hex||state.colors[0].hex;
-  els.generate.style.background=buttonColor;
-  els.generate.style.color=contrast(buttonColor);
-  state.colors.forEach((color,index)=>{
-    const ink=contrast(color.hex); const swatch=document.createElement('article');
-    swatch.draggable=false; swatch.dataset.index=index;
-    swatch.className=`swatch${color.locked?' locked':''}`; swatch.style.background=color.hex; swatch.style.color=ink;
-    swatch.innerHTML=`
-      <div class="swatch-rail" aria-label="Color actions">
-        <button class="rail-button remove-button" type="button" aria-label="Remove color ${index+1}" title="Remove color">×</button>
-        <button class="rail-button shades-button" type="button" aria-label="View shades for color ${index+1}" title="View shades"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18m-18 5h18"/></svg></button>
-        <button class="rail-button favorite-button${color.favorite?' active':''}" type="button" aria-label="${color.favorite?'Unfavorite':'Favorite'} color ${index+1}" aria-pressed="${!!color.favorite}" title="${color.favorite?'Unfavorite':'Favorite'} color"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.2 5.2 0 0 0-7.4 0L12 6l-1.4-1.4a5.2 5.2 0 0 0-7.4 7.4L12 21l8.8-9a5.2 5.2 0 0 0 0-7.4Z"/></svg></button>
-        <button class="rail-button drag-handle" type="button" aria-label="Drag color ${index+1} to reorder" title="Drag to reorder"><svg viewBox="0 0 24 24"><path d="M3 12h18m-18 0 4-4m-4 4 4 4m14-4-4-4m4 4-4 4"/></svg></button>
-        <button class="rail-button copy-button" type="button" aria-label="Copy ${color.hex}" title="Copy HEX"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button>
-        <button class="rail-button info-button" type="button" aria-label="Color ${index+1} information" title="Color information"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6m0-9h.01"/></svg></button>
-        <button class="rail-button lock-button" type="button" aria-label="${color.locked?'Unlock':'Lock'} color ${index+1}" aria-pressed="${color.locked}" title="${color.locked?'Unlock':'Lock'} color">${lockIcon(color.locked)}</button>
-      </div>
-      <button class="swatch-code" type="button" aria-label="Edit color ${index+1}, ${color.hex}" title="Change color">${color.hex}</button>`;
-    swatch.querySelector('.lock-button').addEventListener('click',()=>{ color.locked=!color.locked; render(); });
-    swatch.querySelector('.remove-button').addEventListener('click',()=>removeColor(index));
-    swatch.querySelector('.swatch-code').addEventListener('click',e=>openColorEditor(index,e.currentTarget));
-    swatch.querySelector('.shades-button').addEventListener('click',()=>{state.variation='luminance';els.variationView.hidden=false;els.palette.hidden=true;els.variations.setAttribute('aria-pressed','true');renderVariations();});
-    swatch.querySelector('.favorite-button').addEventListener('click',()=>{color.favorite=!color.favorite;render();showToast(color.favorite?'Marked as favorite':'Favorite removed');});
-    swatch.querySelector('.copy-button').addEventListener('click',async()=>{await navigator.clipboard?.writeText(color.hex);showToast(`${color.hex} copied`);});
-    swatch.querySelector('.info-button').addEventListener('click',()=>{const rgb=hexToRgb(color.hex),hsl=hexToHsl(color.hex);showToast(`${color.hex} · RGB ${rgb.r}, ${rgb.g}, ${rgb.b} · HSL ${Math.round(hsl.h)}°, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%`);});
-    swatch.querySelector('.drag-handle').addEventListener('pointerdown',()=>{swatch.draggable=true;});
-    swatch.addEventListener('dragstart',e=>{if(!swatch.draggable){e.preventDefault();return;}draggedIndex=index;swatch.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(index));});
-    swatch.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';swatch.classList.add('drop-target');});
-    swatch.addEventListener('dragleave',()=>swatch.classList.remove('drop-target'));
-    swatch.addEventListener('drop',e=>{e.preventDefault();swatch.classList.remove('drop-target');moveColor(draggedIndex,index);});
-    swatch.addEventListener('dragend',()=>{draggedIndex=-1;swatch.draggable=false;swatch.classList.remove('dragging');document.querySelectorAll('.drop-target').forEach(x=>x.classList.remove('drop-target'));});
-    let touchStart=null;
-    swatch.addEventListener('touchstart',e=>{if(e.target.closest('button, input'))return;const t=e.changedTouches[0];touchStart={x:t.clientX,y:t.clientY};},{passive:true});
-    swatch.addEventListener('touchend',e=>{if(!touchStart)return;const t=e.changedTouches[0];const moved=Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y);touchStart=null;if(moved<24)return;const target=document.elementFromPoint(t.clientX,t.clientY)?.closest('.swatch');if(target)moveColor(index,Number(target.dataset.index));},{passive:true});
-    els.palette.appendChild(swatch);
-  });
-  const locked=state.colors.filter(c=>c.locked).length;
-  els.status.textContent=`${state.colors.length} colors · ${locked} locked`;
-  els.add.disabled=state.colors.length>=MAX_COLORS;
-  if(!els.variationView.hidden) renderVariations();
-}
-
-let draggedIndex=-1;
-let editingIndex=-1;
-function hexToHsv(hex){const {r,g,b}=hexToRgb(hex),max=Math.max(r,g,b)/255,min=Math.min(r,g,b)/255,d=max-min;let h=0;if(d){if(max===r/255)h=((g-b)/255/d)%6;else if(max===g/255)h=(b-r)/255/d+2;else h=(r-g)/255/d+4;}return {h:wrap(h*60),s:max?d/max:0,v:max};}
-function hsvToHex(h,s,v){const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;const parts=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];return rgbToHex(...parts.map(n=>(n+m)*255));}
-function editorText(hex){const rgb=hexToRgb(hex),hsl=hexToHsl(hex);return els.editorFormat.value==='rgb'?`${rgb.r}, ${rgb.g}, ${rgb.b}`:els.editorFormat.value==='hsl'?`${Math.round(hsl.h)}°, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%`:hex.slice(1);}
-function positionEditor(anchor){const r=anchor.getBoundingClientRect(),w=326,h=390;els.editor.style.left=`${clamp(r.left,8,innerWidth-w-8)}px`;els.editor.style.top=`${r.top>h+12?r.top-h-8:Math.min(r.bottom+8,innerHeight-h-8)}px`;}
-function refreshEditor(syncText=true){if(editingIndex<0)return;const hex=state.colors[editingIndex].hex,hsv=hexToHsv(hex);els.colorPlane.style.setProperty('--hue',hsv.h);document.querySelector('#planeThumb').style.left=`${hsv.s*100}%`;document.querySelector('#planeThumb').style.top=`${(1-hsv.v)*100}%`;els.editorHue.value=Math.round(hsv.h);document.querySelector('#editorPreview').style.background=hex;document.querySelector('#editorPrefix').hidden=els.editorFormat.value!=='hex';if(syncText)els.editorValue.value=editorText(hex);}
-function openColorEditor(index,anchor){editingIndex=index;els.editor.hidden=false;els.editorFormat.value=state.format;refreshEditor();positionEditor(anchor);els.editorValue.focus();els.editorValue.select();}
-function closeColorEditor(){if(editingIndex<0)return;editingIndex=-1;els.editor.hidden=true;els.editorValue.blur();}
-function updateEditedColor(hex){if(editingIndex<0)return;const c=state.colors[editingIndex];c.hex=hex.toUpperCase();state.baseColors=state.colors.map(x=>x.hex);const swatch=els.palette.children[editingIndex];swatch.style.background=c.hex;swatch.style.color=contrast(c.hex);swatch.querySelector('.swatch-code').textContent=c.hex;swatch.querySelector('.swatch-code').setAttribute('aria-label',`Edit color ${editingIndex+1}, ${c.hex}`);const buttonColor=state.colors.find(x=>!x.locked)?.hex||state.colors[0].hex;els.generate.style.background=buttonColor;els.generate.style.color=contrast(buttonColor);refreshEditor();}
-function commitEditor(){if(editingIndex<0)return;const raw=els.editorValue.value;const next=parseColor(els.editorFormat.value==='hex'?`#${raw.replace(/^#/, '')}`:raw);if(!next){showToast('Enter a valid color value');els.editorValue.focus();return;}updateEditedColor(next);closeColorEditor();render();}
-els.editorValue.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commitEditor();}if(e.key==='Escape'){e.preventDefault();closeColorEditor();}});
-els.editorFormat.addEventListener('change',e=>{state.format=e.target.value;refreshEditor();els.editorValue.focus();els.editorValue.select();});
-document.querySelector('#closeColorEditor').addEventListener('click',closeColorEditor);
-document.querySelector('#editorCopy').addEventListener('click',async()=>{if(editingIndex<0)return;await navigator.clipboard?.writeText(state.colors[editingIndex].hex);showToast('Color copied');});
-els.editorHue.addEventListener('input',e=>{if(editingIndex<0)return;const hsv=hexToHsv(state.colors[editingIndex].hex);updateEditedColor(hsvToHex(Number(e.target.value),hsv.s,hsv.v));});
-function setPlaneColor(e){if(editingIndex<0)return;const r=els.colorPlane.getBoundingClientRect(),s=clamp((e.clientX-r.left)/r.width,0,1),v=1-clamp((e.clientY-r.top)/r.height,0,1);updateEditedColor(hsvToHex(Number(els.editorHue.value),s,v));}
-els.colorPlane.addEventListener('pointerdown',e=>{els.colorPlane.setPointerCapture(e.pointerId);setPlaneColor(e);});
-els.colorPlane.addEventListener('pointermove',e=>{if(e.buttons)setPlaneColor(e);});
-els.colorPlane.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)||editingIndex<0)return;e.preventDefault();const hsv=hexToHsv(state.colors[editingIndex].hex);hsv.s=clamp(hsv.s+(e.key==='ArrowRight'?.02:e.key==='ArrowLeft'?-.02:0),0,1);hsv.v=clamp(hsv.v+(e.key==='ArrowUp'?.02:e.key==='ArrowDown'?-.02:0),0,1);updateEditedColor(hsvToHex(hsv.h,hsv.s,hsv.v));});
-document.addEventListener('pointerdown',e=>{if(!els.editor.hidden&&!e.target.closest('#colorEditor,.swatch-code'))closeColorEditor();});
-function moveColor(from,to){
-  if(from<0||from===to)return;
-  const [color]=state.colors.splice(from,1);state.colors.splice(to,0,color);
-  const [base]=state.baseColors.splice(from,1);state.baseColors.splice(to,0,base);
-  render();showToast(`Color moved to position ${to+1}`);
-}
-
-function setColor(index, hex) { state.colors[index].hex=hex.toUpperCase(); state.baseColors=state.colors.map(c=>c.hex); resetAdjustmentValues(false); render(); }
-function removeColor(index) { if(state.colors.length<=MIN_COLORS){showToast('A palette needs at least two colors');return;} state.colors.splice(index,1); state.baseColors=state.colors.map(c=>c.hex); render(); }
-function addColor() {
-  if(state.colors.length>=MAX_COLORS)return;
-  const last=hexToHsl(state.colors.at(-1).hex); const hex=hslToHex(last.h+35,last.s,clamp(last.l+((state.colors.length%2)?8:-8),22,80));
-  state.colors.push({id:crypto.randomUUID?.()||String(Date.now()),hex,locked:false}); state.baseColors=state.colors.map(c=>c.hex); render();
-}
-
-function shuffle(values) {
-  const result=[...values];
-  for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}
-  return result;
-}
-function hueDistance(a,b){const d=Math.abs(wrap(a)-wrap(b));return Math.min(d,360-d);}
-function generatedHues(mode, anchorHue, count) {
-  if(mode==='balanced') {
-    const step=360/(count+1), phase=(Math.random()-.5)*step*.65;
-    return shuffle(Array.from({length:count},(_,i)=>wrap(anchorHue+(i+1)*step+phase+(Math.random()-.5)*step*.6)));
-  }
-  if(mode==='monochromatic') return Array.from({length:count},()=>wrap(anchorHue+(Math.random()-.5)*12));
-  if(mode==='analogous') {
-    const direction=Math.random()<.5?-1:1, spread=70+Math.random()*55;
-    return shuffle(Array.from({length:count},(_,i)=>wrap(anchorHue+direction*(12+(i+1)/(count+1)*spread)+(Math.random()-.5)*10)));
-  }
-  const families={complementary:[0,180],triadic:[0,120,240],tetradic:[0,60,180,240],square:[0,90,180,270]}[mode];
-  const rotation=Math.floor(Math.random()*families.length);
-  return shuffle(Array.from({length:count},(_,i)=>wrap(anchorHue+families[(i+rotation)%families.length]+(Math.random()-.5)*24)));
-}
-
-function generatePalette() {
-  const locked=state.colors.filter(c=>c.locked), free=state.colors.filter(c=>!c.locked);
-  if(!free.length){showToast('Unlock a color to generate a new palette');return;}
-  const anchor=locked.length?hexToHsl(locked[Math.floor(Math.random()*locked.length)].hex):{h:Math.random()*360,s:55+Math.random()*25,l:45+Math.random()*20};
-  const hues=generatedHues(state.harmony,anchor.h,free.length);
-  const lightnessOrder=shuffle(Array.from({length:free.length},(_,i)=>i));
-  free.forEach((c,i)=>{
-    let hue=hues[i];
-    if(state.harmony==='balanced' && hueDistance(hue,hexToHsl(c.hex).h)<22)hue=wrap(hue+30+Math.random()*35);
-    const saturation=clamp(anchor.s+(Math.random()-.5)*34,38,88);
-    const lightness=state.harmony==='monochromatic'
-      ? clamp(23+lightnessOrder[i]*58/Math.max(free.length-1,1)+(Math.random()-.5)*8,20,86)
-      : clamp(anchor.l+(Math.random()-.5)*38,27,78);
-    c.hex=hslToHex(hue,saturation,lightness);
-  });
-  state.baseColors=state.colors.map(c=>c.hex); resetAdjustmentValues(false); render(); showToast(locked.length?'Palette generated around locked colors':'New palette generated');
-}
-
-function resetAdjustmentValues(shouldRender=true) {
-  state.adjustments={hue:0,saturation:0,brightness:0,temperature:0};
-  ['hue','saturation','brightness','temperature'].forEach(k=>document.querySelector(`#${k}Slider`).value=0);
-  updateOutputs(); if(shouldRender)render();
-}
-function updateOutputs(){
-  document.querySelector('#hueOutput').value=`${state.adjustments.hue}°`;
-  document.querySelector('#saturationOutput').value=state.adjustments.saturation>0?`+${state.adjustments.saturation}`:state.adjustments.saturation;
-  document.querySelector('#brightnessOutput').value=state.adjustments.brightness>0?`+${state.adjustments.brightness}`:state.adjustments.brightness;
-  const t=state.adjustments.temperature; document.querySelector('#temperatureOutput').value=t===0?'Neutral':t>0?`Warm +${t}`:`Cool ${t}`;
-}
-function applyAdjustments() {
-  state.colors.forEach((c,i)=>{
-    if(c.locked)return;
-    const hsl=hexToHsl(state.baseColors[i]||c.hex), temp=state.adjustments.temperature;
-    const target=temp>0?35:215; const blend=Math.abs(temp)/60;
-    const delta=((target-hsl.h+540)%360)-180;
-    c.hex=hslToHex(hsl.h+state.adjustments.hue+delta*blend*.28, hsl.s+state.adjustments.saturation, hsl.l+state.adjustments.brightness);
-  }); updateOutputs(); render();
-}
-
-function variationHex(base,row,type){
-  const hsl=hexToHsl(base), t=row/10;
-  if(type==='saturation')return hslToHex(hsl.h,100-(t*100),hsl.l);
-  if(type==='temperature'){const target=t<.5?215:35,amount=Math.abs(t-.5)*1.5,delta=((target-hsl.h+540)%360)-180;return hslToHex(hsl.h+delta*amount,hsl.s,clamp(hsl.l+(0.5-Math.abs(t-.5))*8));}
-  return hslToHex(hsl.h,hsl.s,96-t*84);
-}
-function renderVariations(){
-  els.variationGrid.style.setProperty('--columns',state.colors.length); els.variationGrid.innerHTML='';
-  state.colors.forEach((c,col)=>{
-    const column=document.createElement('div'); column.className='variation-column';
-    for(let row=0;row<11;row++){const hex=variationHex(c.hex,row,state.variation);const b=document.createElement('button');b.className='variation-chip';b.style.background=hex;b.style.color=contrast(hex);b.textContent=hex.slice(1);b.title=`Use ${hex}`;b.addEventListener('click',()=>{setColor(col,hex);showToast(`${hex} applied`);});column.appendChild(b);}
-    els.variationGrid.appendChild(column);
-  });
-}
-
-function svgMarkup(){
-  const w=1440,h=900,bar=w/state.colors.length;
-  const rects=state.colors.map((c,i)=>`<rect x="${i*bar}" width="${bar+1}" height="${h}" fill="${c.hex}"/><text x="${i*bar+bar/2}" y="${h-60}" text-anchor="middle" fill="${contrast(c.hex)}" font-family="Arial,sans-serif" font-size="28" font-weight="700">${c.hex}</text>`).join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><title>Cooleur palette</title>${rects}</svg>`;
-}
-function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),500);}
-function exportSvg(){download(new Blob([svgMarkup()],{type:'image/svg+xml'}),'cooleur-palette.svg');showToast('SVG exported');}
-function exportPng(){
-  const canvas=document.createElement('canvas');canvas.width=1440;canvas.height=900;const ctx=canvas.getContext('2d'),bar=canvas.width/state.colors.length;
-  state.colors.forEach((c,i)=>{ctx.fillStyle=c.hex;ctx.fillRect(i*bar,0,bar+1,canvas.height);ctx.fillStyle=contrast(c.hex);ctx.font='700 28px Arial';ctx.textAlign='center';ctx.fillText(c.hex,i*bar+bar/2,canvas.height-60);});
-  canvas.toBlob(blob=>{download(blob,'cooleur-palette.png');showToast('PNG exported');},'image/png');
-}
-
-els.generate.addEventListener('click',generatePalette); els.add.addEventListener('click',addColor);
-function closeHarmonyMenu(){els.harmonyMenu.hidden=true;els.harmonyTrigger.setAttribute('aria-expanded','false');}
-function setHarmony(mode){
-  if(!schemes[mode])return;
-  state.harmony=mode;els.harmony.value=mode;
-  els.harmonyLabel.textContent=els.harmony.selectedOptions[0].textContent;
-  els.harmonyMenu.querySelectorAll('[data-harmony]').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.harmony===mode)));
-  closeHarmonyMenu();els.harmonyTrigger.blur();generatePalette();
-}
-els.harmonyTrigger.addEventListener('click',()=>{
-  const opening=els.harmonyMenu.hidden;els.harmonyMenu.hidden=!opening;
-  els.harmonyTrigger.setAttribute('aria-expanded',String(opening));
-  if(opening)els.harmonyMenu.querySelector('[aria-selected="true"]').focus();
-});
-els.harmonyMenu.addEventListener('click',e=>{const option=e.target.closest('[data-harmony]');if(option)setHarmony(option.dataset.harmony);});
-els.harmonyMenu.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){e.preventDefault();closeHarmonyMenu();els.harmonyTrigger.focus();return;}
-  if(!['ArrowDown','ArrowUp'].includes(e.key))return;
-  e.preventDefault();const options=[...els.harmonyMenu.querySelectorAll('[data-harmony]')];
-  options[(options.indexOf(document.activeElement)+(e.key==='ArrowDown'?1:options.length-1))%options.length].focus();
-});
-els.harmony.addEventListener('change',e=>setHarmony(e.target.value));
-els.themeToggle.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
-['hue','saturation','brightness','temperature'].forEach(k=>document.querySelector(`#${k}Slider`).addEventListener('input',e=>{state.adjustments[k]=Number(e.target.value);applyAdjustments();}));
-els.reset.addEventListener('click',()=>{state.colors.forEach((c,i)=>{if(!c.locked)c.hex=state.baseColors[i]||c.hex});resetAdjustmentValues();});
-els.variations.addEventListener('click',()=>{els.variationView.hidden=!els.variationView.hidden;els.palette.hidden=!els.variationView.hidden;els.variations.setAttribute('aria-pressed',!els.variationView.hidden);if(!els.variationView.hidden)renderVariations();els.variations.blur();});
-els.closeDialog.addEventListener('click',()=>{els.variationView.hidden=true;els.palette.hidden=false;els.variations.setAttribute('aria-pressed','false');els.closeDialog.blur();});
-els.adjustmentsButton.addEventListener('click',()=>{els.adjustmentsPanel.hidden=!els.adjustmentsPanel.hidden;document.querySelector('#workspace').classList.toggle('tuning',!els.adjustmentsPanel.hidden);els.adjustmentsButton.setAttribute('aria-pressed',!els.adjustmentsPanel.hidden);els.adjustmentsButton.blur();});
-els.closeAdjustments.addEventListener('click',()=>{els.adjustmentsPanel.hidden=true;document.querySelector('#workspace').classList.remove('tuning');els.adjustmentsButton.setAttribute('aria-pressed','false');els.closeAdjustments.blur();});
-document.querySelector('.variation-tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.variation=b.dataset.variation;document.querySelectorAll('.variation-tabs button').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-selected',x===b)});renderVariations();});
-els.exportButton.addEventListener('click',()=>{const open=els.exportMenu.hidden;els.exportMenu.hidden=!open;els.exportButton.setAttribute('aria-expanded',open);});
-els.exportMenu.addEventListener('click',e=>{const type=e.target.dataset.export;if(!type)return;type==='svg'?exportSvg():exportPng();els.exportMenu.hidden=true;els.exportButton.setAttribute('aria-expanded','false');});
-document.addEventListener('click',e=>{if(!e.target.closest('.export-wrap')){els.exportMenu.hidden=true;els.exportButton.setAttribute('aria-expanded','false');}if(!e.target.closest('.mode-control'))closeHarmonyMenu();});
-document.addEventListener('keydown',e=>{
-  if(e.code!=='Space'||e.repeat)return;
-  const focused=document.activeElement;
-  if(focused.matches('input, textarea, [contenteditable="true"]'))return;
-  e.preventDefault();closeHarmonyMenu();focused.blur();generatePalette();
-},true);
-
-function registerWebMcp(){
-  const context=document.modelContext;if(!context?.registerTool)return;
-  const register=(tool)=>{try{Promise.resolve(context.registerTool(tool)).catch(()=>{});}catch{}}
-  register({name:'generate_color_palette',title:'Generate color palette',description:'Generate a new visible palette using a named harmony while preserving locked colors.',inputSchema:{type:'object',properties:{harmony:{type:'string',enum:Object.keys(schemes)}},additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(input?.harmony){state.harmony=input.harmony;els.harmony.value=input.harmony;els.harmonyLabel.textContent=els.harmony.selectedOptions[0].textContent;els.harmonyMenu.querySelectorAll('[data-harmony]').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.harmony===input.harmony)));}generatePalette();return{colors:state.colors.map(c=>c.hex),harmony:state.harmony};}});
-  register({name:'set_locked_colors',title:'Set locked colors',description:'Set and lock one or more HEX colors in the visible palette.',inputSchema:{type:'object',properties:{colors:{type:'array',items:{type:'string',pattern:'^#[0-9A-Fa-f]{6}$'},minItems:1,maxItems:10}},required:['colors'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!Array.isArray(input.colors)||!input.colors.length)throw new Error('At least one HEX color is required');input.colors.forEach((hex,i)=>{if(i<state.colors.length){state.colors[i].hex=hex.toUpperCase();state.colors[i].locked=true;}else if(state.colors.length<MAX_COLORS)state.colors.push({id:String(Date.now()+i),hex:hex.toUpperCase(),locked:true});});state.baseColors=state.colors.map(c=>c.hex);render();return{colors:state.colors.map(c=>({hex:c.hex,locked:c.locked}))};}});
-}
-
-try{setTheme(localStorage.getItem('cooleur-theme')==='dark'?'dark':'light');}catch{setTheme('light');}
-render(); registerWebMcp();
+$('librarySearch').oninput=renderLibrary;
+function applyTheme(theme){const light=theme==='light';document.documentElement.dataset.theme=light?'light':'dark';$('themeBtn').textContent=light?'Dark theme':'Light theme';$('themeBtn').setAttribute('aria-label',light?'Switch to dark theme':'Switch to light theme');$('themeBtn').setAttribute('aria-pressed',String(light))}
+applyTheme(localStorage.getItem('frame-theme')||'dark');$('themeBtn').onclick=()=>{const theme=document.documentElement.dataset.theme==='light'?'dark':'light';applyTheme(theme);localStorage.setItem('frame-theme',theme)};
