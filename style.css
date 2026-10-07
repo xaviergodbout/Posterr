@@ -89,3 +89,26 @@ input[type=checkbox]:focus-visible{outline:2px solid #4e90ff;outline-offset:3px}
 .workspace .canvas-wrap{position:relative}.workspace canvas{touch-action:auto;cursor:default}.workspace canvas.color-picking{cursor:crosshair}
 .editor-toolbar #savePosterBtn,.editor-toolbar #importPosterBtn{white-space:nowrap}
 @media(max-width:900px){.editor-toolbar{flex-wrap:wrap}.editor-toolbar .search-area{flex:1;min-width:180px}}
+/* Season mode keeps the TV poster in one third of the preview area. */
+.workspace-split{height:100%;min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.workspace-split.with-seasons{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.workspace-split>.workspace{min-width:0;min-height:0}
+.workspace-active{border-color:#00ad8a;box-shadow:0 0 0 1px #00ad8a}
+.season-mode-control{margin:0;white-space:nowrap;flex:none;font-size:12px}
+.season-mode-control:has(input:disabled){opacity:.45}
+.sync-title{margin-bottom:16px;font-size:11px}
+#seasonWorkspace{overflow:hidden}
+.season-grid{flex:1;min-height:0;min-width:0;padding:12px;display:grid;gap:10px;grid-template-columns:repeat(var(--season-columns,3),minmax(0,1fr));grid-template-rows:repeat(var(--season-rows,1),minmax(0,1fr));overflow:hidden;background:#151515}
+.season-card{padding:6px;min-width:0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;container-type:size;background:transparent;border:1px solid var(--line);overflow:hidden}
+.season-card.selected{border-color:#00ad8a;background:#00ad8a12}
+.season-grid canvas{width:min(100cqw,calc((100cqh - 44px)*.666667));height:min(calc(100cqh - 44px),150cqw);max-width:100%;max-height:none;aspect-ratio:2/3;object-fit:contain;box-shadow:none;border:0;flex:none;cursor:pointer}
+.season-card-label{font-size:11px;line-height:14px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;max-width:100%;flex:none}
+.season-card-note{font-size:9px;line-height:12px;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden;max-width:100%;flex:none}
+.season-grid.color-picking canvas{cursor:crosshair}
+.season-empty{grid-column:1/-1;text-align:center;align-self:center;font-size:12px;padding:10px}
+#seasonTools .wide{margin-top:8px}#seasonTools .sync-title{margin-top:14px}#seasonTools .muted{font-size:11px}
+#seasonTools .color-swatch{margin-top:0}.season-artwork{grid-template-columns:repeat(3,minmax(0,1fr))}
+[data-theme=light] .season-grid{background:#e8e8e8}[data-theme=light] .season-card{background:#fff}[data-theme=light] .season-card.selected{background:#e6faf5}
+.with-seasons .canvas-footer{flex-wrap:wrap}.with-seasons .canvas-footer>span:nth-child(2){display:none}
+@media(max-width:900px){.season-grid{padding:7px;gap:6px}.workspace-split{gap:8px}.season-mode-control{font-size:11px}}
+@media(max-width:650px){.workspace-split.with-seasons{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}.season-grid{padding:3px;gap:3px}.season-card{padding:2px;gap:2px}.season-card-label{font-size:8px}.season-card-note{display:none}.season-grid canvas{width:min(100cqw,calc((100cqh - 22px)*.666667));height:min(calc(100cqh - 22px),150cqw)}.with-seasons .workspace-bar{flex-wrap:wrap}.with-seasons .workspace-bar .badge{display:none}}
