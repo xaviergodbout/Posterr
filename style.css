@@ -86,8 +86,6 @@ input[type=checkbox]:focus-visible{outline:2px solid #4e90ff;outline-offset:3px}
 #pickerSwatch{width:30px;height:30px;border-radius:7px;border:1px solid #8885;flex:none}
 .picker-actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px}.picker-actions button{padding:8px}.picker-hint{font-size:11px;margin:12px 0 0}
 #pickerHex[aria-invalid=true]{color:#ef6b6b}
-.workspace .canvas-wrap{position:relative}.workspace canvas{touch-action:none}.workspace canvas.movable{cursor:move}.workspace canvas.color-picking{cursor:crosshair}
-#resizeHandle{position:absolute;width:16px;height:16px;padding:0;border-radius:3px;border:2px solid white;background:#00ad8a;box-shadow:0 0 0 1px #222;transform:translate(-50%,-50%);cursor:nwse-resize;touch-action:none;z-index:2}
-#resizeHandle[hidden]{display:none}
+.workspace .canvas-wrap{position:relative}.workspace canvas{touch-action:auto;cursor:default}.workspace canvas.color-picking{cursor:crosshair}
 .editor-toolbar #savePosterBtn,.editor-toolbar #importPosterBtn{white-space:nowrap}
 @media(max-width:900px){.editor-toolbar{flex-wrap:wrap}.editor-toolbar .search-area{flex:1;min-width:180px}}
